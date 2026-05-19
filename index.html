@@ -6,6 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#4A5C52">
+<meta name="application-name" content="DAFNE">
+<meta name="apple-mobile-web-app-title" content="DAFNE">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22DAFNE%20v1.0%22%2C%22short_name%22%3A%22DAFNE%22%2C%22description%22%3A%22Formulaci%C3%B3n%20de%20casos%20cl%C3%ADnicos%20PBT%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F5F0EB%22%2C%22theme_color%22%3A%22%234A5C52%22%2C%22orientation%22%3A%22any%22%7D">
 <title>DAFNE v1.0 — Formulación de casos PBT</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1432,10 +1437,10 @@
   <div id="tabs">
     <button class="tab active" data-tab="patient">Paciente</button>
     <button class="tab" data-tab="notes">Notas de sesión</button>
-    <button class="tab" data-tab="dafne">DAFNE</button>
+    <button class="tab" data-tab="dafne">Diagrama ARF</button>
     <button class="tab" data-tab="eemm">Tabla EEMM</button>
     <button class="tab" data-tab="kernels">Kernels</button>
-    <button class="tab" data-tab="cycles">Bucles</button>
+    <button class="tab" data-tab="cycles">Ciclos</button>
     <button class="tab" data-tab="formulation">Formulación</button>
     <button class="tab" data-tab="plan">Plan de tratamiento</button>
     <button class="tab" data-tab="io">Exportar/Importar</button>
@@ -1487,16 +1492,22 @@
       <button class="welcome-btn-primary" onclick="welcomeNewCase()">
         ＋ Empezar caso nuevo
       </button>
-      <div class="welcome-divider">o continuar con un caso existente</div>
+      <div class="welcome-divider">continuar con un caso existente</div>
+      <button class="welcome-btn-secondary" id="welcome-ls-cases" onclick="welcomeOpenSaved()">
+        📱 Casos guardados en este dispositivo
+        <span id="welcome-ls-count" style="background:#7A9BAD; color:#fff; font-size:9px; padding:1px 6px; border-radius:8px; margin-left:4px;"></span>
+      </button>
       <!-- Desktop: JS file picker -->
       <button class="welcome-btn-secondary" id="welcome-open-desktop" onclick="welcomeOpenCase()">
-        📂 Abrir archivo .dafne
+        📂 Abrir archivo .json / .dafne
       </button>
       <!-- Mobile: label with direct file input -->
-      <label class="welcome-file-label" id="welcome-open-mobile" style="display:none;">
-        📂 Abrir archivo .dafne
-        <input type="file" accept=".dafne,.json" style="display:none; width:0;" onchange="welcomeImportFile(event)">
-      </label>
+      <button class="welcome-btn-secondary" id="welcome-open-mobile" style="display:none;" onclick="document.getElementById('file-input-welcome').click()">
+        📂 Abrir archivo .json / .dafne
+      </button>
+      <input type="file" id="file-input-welcome" accept=".json,.dafne,application/json,text/plain,*/*"
+        style="position:fixed; top:-100px; left:-100px; width:1px; height:1px; opacity:0;"
+        onchange="welcomeImportFile(event)">
     </div>
 
     <div class="welcome-footer">
@@ -1539,7 +1550,7 @@
       <h2>Acciones rápidas</h2>
       <div class="actions">
         <button class="btn" onclick="switchTab('notes')">Empezar con notas de sesión →</button>
-        <button class="btn ghost" onclick="switchTab('dafne')">Ir al editor DAFNE →</button>
+        <button class="btn ghost" onclick="switchTab('dafne')">Ir al diagrama ARF →</button>
         <button class="btn danger" onclick="resetCase()">Reiniciar caso</button>
       </div>
       <p style="font-size:10px; color:#888; margin-top:10px; line-height:1.5;">
@@ -1631,15 +1642,14 @@
   <div id="view-notes" class="view">
     <div id="notes-toolbar">
       <div id="notes-tabs-mini">
-        <button class="notes-session-tab active" data-idx="0" onclick="switchNoteSession(0)">Sesión actual</button>
-        <button class="notes-session-tab" data-idx="1" onclick="switchNoteSession(1)">Sesión 2</button>
-        <button class="notes-session-tab" data-idx="2" onclick="switchNoteSession(2)">Sesión 3</button>
-        <button class="notes-session-tab add-session" onclick="addNoteSession()" title="Añadir sesión">+</button>
+        <button class="notes-session-tab active" data-idx="0" onclick="switchNoteSession(0)">Sesión 1</button>
+        <button class="notes-session-tab add-session" onclick="addNoteSession()" title="Añadir sesión de notas">+ Añadir sesión</button>
       </div>
       <div id="notes-toolbar-right">
-        <label class="btn small ghost" style="cursor:pointer;" title="Cargar .txt">📄 Cargar .txt
-          <input type="file" id="notes-file-input" accept=".txt,.md" style="display:none; width:0; height:0;" onchange="onNotesFileLoaded(event)">
-        </label>
+        <button class="btn small ghost" onclick="document.getElementById('notes-file-input').click()" title="Cargar .txt">📄 Cargar .txt</button>
+        <input type="file" id="notes-file-input" accept=".txt,.md,text/plain,text/markdown,*/*"
+          style="position:fixed; top:-100px; left:-100px; width:1px; height:1px; opacity:0;"
+          onchange="onNotesFileLoaded(event)">
         <button class="btn small secondary" id="btn-analyze" onclick="analyzeWithAI()">✨ Analizar con IA</button>
         <button class="btn small ghost" onclick="showApiKeyModal()" title="Configurar API key">⚙ API key</button>
       </div>
@@ -1708,7 +1718,7 @@ DAFNE usará este texto para generar automáticamente los nodos, relaciones, tab
     </div>
   </div>
 
-  <!-- ─── VISTA DAFNE ─── -->
+  <!-- ─── VISTA DIAGRAMA ARF ─── -->
   <div id="view-dafne" class="view">
     <div id="dafne-left">
       <div class="panel-section">
@@ -1738,7 +1748,8 @@ DAFNE usará este texto para generar automáticamente los nodos, relaciones, tab
         <div style="font-size:28px; margin-bottom:10px;">🔲</div>
         <strong style="display:block; font-size:12px; color:#555; margin-bottom:8px;">Sin nodo seleccionado</strong>
         Selecciona un nodo del grafo o de la lista izquierda para editar sus propiedades aquí.<br><br>
-        Crea uno nuevo con el botón <strong>+ Nuevo nodo</strong>.<br><br>
+        Crea uno nuevo con el botón <strong>+ Nuevo nodo</strong>.
+<span style="font-size:10px; color:#aaa;">ARF = Análisis de Red Funcional</span><br><br>
         <span style="font-size:10px; color:#aaa; line-height:1.6;">Cada nodo representa un <em>proceso psicológico</em> relevante para el caso: un pensamiento recurrente, una emoción funcional, una conducta de evitación, un moderador contextual. Los ⓘ junto a cada campo explican para qué sirve cada dato.</span>
       </div>
       <div id="node-detail" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
@@ -1857,7 +1868,7 @@ DAFNE usará este texto para generar automáticamente los nodos, relaciones, tab
     <div id="canvas-mobile-hint">
       <div style="text-align:center; padding:24px 20px; max-width:320px;">
         <div style="font-size:40px; margin-bottom:12px;">🔲</div>
-        <strong style="display:block; font-size:14px; color:#4A5C52; margin-bottom:8px;">Editor de red DAFNE</strong>
+        <strong style="display:block; font-size:14px; color:#4A5C52; margin-bottom:8px;">Diagrama ARF</strong>
         <p style="font-size:12px; color:#666; line-height:1.6; margin-bottom:16px;">
           Esta vista está optimizada para pantalla grande.<br>
           En el teléfono puedes ver y tocar el grafo, pero para editar nodos con detalle usa tablet o computadora.
@@ -1872,11 +1883,13 @@ DAFNE usará este texto para generar automáticamente los nodos, relaciones, tab
   <div id="view-eemm" class="view">
     <div id="eemm-header">
       <h2>Tabla EEMM · Modelo Meta-Evolutivo Extendido (Hayes &amp; Hofmann)</h2>
-      <div style="font-size:11px; color:#666; max-width:900px; line-height:1.55;">
-        Los nodos creados en DAFNE aparecen automáticamente en la celda correspondiente según su dimensión y proceso meta-evolutivo. Usa las notas de texto libre de cada celda para profundizar el análisis.
-        <strong style="color:#4A5C52;">Pregunta guía por celda:</strong> ¿Cómo se expresa [variación / selección / retención / contexto] en la dimensión [afecto / cognición / ...] de este paciente?
-        <span style="display:inline-block; margin-top:4px; color:#888;">
-          Recuerda: esta tabla también orienta <em>qué medir</em> — si una celda tiene nodos pero no tienes medidas, es una señal de que necesitas instrumentos de evaluación ahí (paso 4 del PBT).
+      <div style="font-size:11px; color:#666; max-width:1100px; line-height:1.55;">
+        Los nodos creados en DAFNE aparecen en su celda según dimensión y proceso meta-evolutivo. Las notas de texto libre profundizan cada celda.
+        <span style="display:inline-block; background:#EBF2EC; border:1px solid #BDD4C0; border-radius:4px; padding:4px 10px; margin-top:6px; color:#4A5C52;">
+          <strong>¿Por dónde empezar?</strong> Primero la columna <strong>Contexto</strong> — es la más diagnóstica y la más subutilizada. Luego <strong>Selección</strong> y <strong>Retención</strong> de las dimensiones donde tienes nodos centrales. La columna Variación describe el repertorio disponible.
+        </span>
+        <span style="display:inline-block; margin-top:4px; color:#888; font-size:10px;">
+          Esta tabla también orienta <em>qué medir</em> (paso 4 del PBT): si una celda tiene nodos pero sin medidas, es una señal de que necesitas instrumentos de evaluación ahí.
         </span>
       </div>
     </div>
@@ -1885,10 +1898,10 @@ DAFNE usará este texto para generar automáticamente los nodos, relaciones, tab
         <thead>
           <tr>
             <th class="row-header">Dimensión</th>
-            <th class="col-header lvl">Variación<small>generación de diversidad</small></th>
-            <th class="col-header lvl">Selección<small>según consecuencias / valores</small></th>
-            <th class="col-header lvl">Retención<small>persistencia en el tiempo</small></th>
-            <th class="col-header lvl">Contexto<small>condiciones que regulan</small></th>
+            <th class="col-header lvl">Variación<small>repertorio disponible</small></th>
+            <th class="col-header lvl">Selección<small>criterio que elige</small></th>
+            <th class="col-header lvl">Retención<small>qué persiste</small></th>
+            <th class="col-header lvl" style="background:#5B7F96; border-left:3px solid #7A9BAD;" title="Empieza por aquí — la columna más diagnóstica">Contexto ★<small>condiciones que regulan</small></th>
           </tr>
         </thead>
         <tbody id="eemm-body"></tbody>
@@ -1905,6 +1918,10 @@ DAFNE usará este texto para generar automáticamente los nodos, relaciones, tab
         <button class="btn small ghost" onclick="saveAsGlobalLibrary()" title="Guardar la biblioteca actual como tu biblioteca global del terapeuta">💾 Guardar como global</button>
         <button class="btn small ghost" onclick="resetToDefaultLibrary()" title="Volver a la biblioteca por defecto del libro Learning PBT">↺ Restablecer default</button>
       </div>
+    </div>
+    <div style="background:#fff4e0; border-bottom:1px solid #e8d5a0; padding:8px 14px; font-size:11px; color:#7a5c1e; flex-shrink:0;">
+      📚 <strong>Biblioteca de kernels:</strong> Esta pestaña administra las intervenciones disponibles globalmente.
+      Para asignar kernels a un nodo específico del caso, ve a <strong>DAFNE → selecciona el nodo → sección Kernels sugeridos</strong>.
     </div>
     <div id="kernels-main">
       <div id="kernels-list">
@@ -1924,7 +1941,7 @@ DAFNE usará este texto para generar automáticamente los nodos, relaciones, tab
   <!-- ─── VISTA BUCLES ─── -->
   <div id="view-cycles" class="view">
     <div id="cycles-header">
-      <h2 style="font-size:14px; color:#4A5C52; font-weight:600;">Bucles detectados en la red</h2>
+      <h2 style="font-size:14px; color:#4A5C52; font-weight:600;">Ciclos mantenedores detectados en la red</h2>
       <button class="btn ghost small" onclick="detectCycles(); renderCycles();">↻ Recalcular</button>
     </div>
     <div class="orient-banner" style="margin-bottom:12px;">
@@ -2002,15 +2019,15 @@ DAFNE usará este texto para generar automáticamente los nodos, relaciones, tab
   <!-- ─── VISTA PLAN ─── -->
   <div id="view-plan" class="view">
     <div id="plan-toolbar">
-      <button class="btn small" onclick="rebuildPlan()">↻ Regenerar plan</button>
       <button class="btn small secondary" onclick="generateAllProtocols()">⚙ Generar protocolos base</button>
+      <button class="btn small ghost" onclick="rebuildPlan()">↻ Regenerar</button>
       <button class="btn small ghost" onclick="window.print()">🖨 Imprimir / PDF</button>
       <span class="toolbar-info" id="plan-info">—</span>
     </div>
     <div style="padding:8px 16px; background:#f0f8f2; border-bottom:1px solid #c8dfd0; font-size:11px; color:#4A5C52; line-height:1.5; flex-shrink:0;">
       <strong>Cómo usar el plan:</strong>
       1. Toca <strong>Generar protocolos base</strong> para cargar los pasos clínicos de cada kernel desde la biblioteca.
-      2. Edita cada protocolo para adaptarlo a este caso específico — lo que escribas aquí se guarda en el archivo .dafne.
+      2. Edita cada protocolo para adaptarlo a este caso específico — lo que escribas aquí se guarda en el archivo .json del caso.
       3. Una vez editado, toca <strong>Imprimir / PDF</strong> para generar el documento clínico. Activa "Gráficos de fondo" en el diálogo de impresión para conservar los colores.
     </div>
     <div id="plan-content">
@@ -2020,46 +2037,55 @@ DAFNE usará este texto para generar automáticamente los nodos, relaciones, tab
 
   <!-- ─── VISTA IO ─── -->
   <div id="view-io" class="view">
+    <!-- PANEL: Almacenamiento en este dispositivo (localStorage) -->
     <div class="panel" style="max-width:640px;">
-      <h2>Archivos del caso (.dafne)</h2>
-      <p style="font-size:11px; color:#666; margin-bottom:14px; line-height:1.6;">
-        DAFNE guarda cada caso en un archivo <code style="background:#F8F5F1; padding:1px 5px; border-radius:2px;">.dafne</code> en tu computador.
-        Un archivo por paciente. Usa los botones de la cabecera (📂 Abrir / 💾 Guardar / Guardar como...) o los atajos:
+      <h2>📱 Casos guardados en este dispositivo</h2>
+      <p style="font-size:11px; color:#555; margin-bottom:12px; line-height:1.6;">
+        DAFNE guarda automáticamente el caso activo en este navegador cada vez que editas. Funciona sin archivos, sin internet, en iPad, iPhone y cualquier dispositivo. Los casos persisten aunque cierres el navegador.
       </p>
-      <table style="font-size:11px; width:100%; margin-bottom:14px;">
-        <tr><td style="padding:4px 8px; color:#4A5C52; font-weight:600;">Ctrl+O</td><td>Abrir caso desde disco</td></tr>
-        <tr><td style="padding:4px 8px; color:#4A5C52; font-weight:600;">Ctrl+S</td><td>Guardar (sobreescribe el archivo actual)</td></tr>
-        <tr><td style="padding:4px 8px; color:#4A5C52; font-weight:600;">Ctrl+Shift+S</td><td>Guardar como... (elegir ubicación nueva)</td></tr>
-        <tr><td style="padding:4px 8px; color:#4A5C52; font-weight:600;">Ctrl+N</td><td>Nuevo caso</td></tr>
-      </table>
-      <div class="banner" id="fs-support-banner" style="display:none;">
-        ⚠ Tu navegador <strong>no soporta el acceso directo a archivos</strong>. Estás en modo descarga: cada "guardar" descargará un archivo nuevo a tu carpeta Downloads. Para acceso directo, usa <strong>Chrome, Edge o Brave</strong>.
-      </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
-        <!-- Desktop: JS-triggered file picker -->
-        <button class="btn" onclick="openCaseFile()" id="btn-open-desktop">📂 Abrir caso desde disco</button>
-        <!-- Mobile fallback: visible file input -->
-        <label class="mobile-file-label" id="label-open-mobile" style="display:none;">
-          📂 Abrir caso
-          <input type="file" accept=".dafne,.json" style="display:none; width:0;" onchange="importCaseFromInput(event)">
-        </label>
-        <button class="btn secondary" onclick="saveCaseAs()">💾 Guardar como...</button>
+      <div style="font-size:10px; color:#888; margin-bottom:12px;" id="ls-badge">—</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn" onclick="openSavedCasesPanel()">📋 Ver casos guardados</button>
+        <button class="btn secondary" onclick="autoSaveToLocalStorage(); toast('Guardado en este dispositivo');">💾 Guardar ahora</button>
         <button class="btn ghost" onclick="newCase()">＋ Nuevo caso</button>
       </div>
+      <div style="margin-top:12px; padding:10px 12px; background:#EBF2EC; border-radius:5px; border:1px solid #BDD4C0; font-size:11px; color:#4A5C52; line-height:1.6;">
+        💡 <strong>Tip iPad/iPhone:</strong> Abre DAFNE en Safari → toca el botón Compartir → <em>Añadir a pantalla de inicio</em>. DAFNE se instala como app y tus casos quedan guardados entre sesiones.
+      </div>
+    </div>
+
+    <div class="panel" style="max-width:640px;">
+      <h2>Archivos de caso (exportar / importar)</h2>
+      <p style="font-size:11px; color:#666; margin-bottom:14px; line-height:1.6;">
+        DAFNE exporta los casos como archivos <code style="background:#F8F5F1; padding:1px 5px; border-radius:2px;">.json</code> que puedes guardar, compartir y abrir en cualquier dispositivo. También abre archivos <code>.dafne</code> de versiones anteriores.
+        En computadora: atajos Ctrl+O / Ctrl+S / Ctrl+Shift+S.
+      </p>
+      <div class="banner" id="fs-support-banner" style="display:none;">
+        ⚠ Tu navegador <strong>no soporta el acceso directo a archivos</strong>. Estás en modo descarga: cada "guardar" descargará un archivo nuevo. Para acceso directo, usa <strong>Chrome, Edge o Brave</strong> en computadora.
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+        <button class="btn" onclick="openCaseFile()" id="btn-open-desktop">📂 Abrir caso (.json / .dafne)</button>
+        <button class="btn" id="label-open-mobile" style="display:none;" onclick="document.getElementById('file-input-io').click()">
+          📂 Abrir caso
+        </button>
+        <input type="file" id="file-input-io" accept=".json,.dafne,application/json,text/plain,*/*"
+          style="position:fixed; top:-100px; left:-100px; width:1px; height:1px; opacity:0;"
+          onchange="importCaseFromInput(event)">
+        <button class="btn secondary" onclick="saveCaseAs()">💾 Exportar como .json</button>
+      </div>
       <p id="mobile-save-hint" style="display:none; font-size:10px; color:#888; margin-top:8px; line-height:1.5;">
-        En móvil, "Guardar" descargará el archivo. Búscalo en tu carpeta de Descargas.
+        En móvil, "Exportar" descargará el archivo a tu carpeta de Descargas.
       </p>
       <div style="margin-top:14px; padding:10px 12px; background:#F8F5F1; border-radius:4px; font-size:11px; line-height:1.6;">
-        <strong>Archivo actual:</strong> <span id="current-file-name" style="font-family:monospace; color:#4A5C52;">— (sin archivo)</span><br>
+        <strong>Archivo actual:</strong> <span id="current-file-name" style="font-family:monospace; color:#4A5C52;">— (sin archivo de disco)</span><br>
         <span id="current-file-status" style="color:#888; font-size:10px;"></span>
       </div>
     </div>
 
     <div class="panel" style="max-width:640px;">
-      <h2>Compatibilidad con formato anterior</h2>
-      <p style="font-size:11px; color:#666; margin-bottom:12px; line-height:1.5;">
-        Si tienes casos exportados como <code>.json</code> en versiones anteriores, puedes abrirlos
-        igual usando "Abrir caso" — DAFNE acepta tanto <code>.dafne</code> como <code>.json</code>.
+      <h2>Compatibilidad</h2>
+      <p style="font-size:11px; color:#666; line-height:1.5;">
+        DAFNE exporta como <code>.json</code> y también abre archivos <code>.dafne</code> de versiones anteriores.
       </p>
     </div>
   </div>
@@ -2740,6 +2766,8 @@ const state = {
   currentSessionIdx: 0,
   // Resultado de IA pendiente de aplicar
   pendingAIResult: null,
+  // localStorage persistence
+  lsCaseId: null,
 };
 
 // Inicializar biblioteca: default → reemplazada por global si existe
@@ -2826,7 +2854,8 @@ function resetCase() {
   state.detectedCycles = []; state.selectedNodeId = null; state.nextNodeId = 1;
   state.caseProtocols = {};
   state.fileHandle = null; state.fileName = null; state.dirty = false;
-  state.selectedKernelName = null;
+  state.selectedKernelName = null; state.lsCaseId = null;
+  lsSetActiveCaseId(null);
   initKernelLibrary();
   initEEMM();
   syncPatientForm();
@@ -3920,10 +3949,16 @@ function renderFormulation() {
       const dim = DIM_BY_KEY[n.dim] || DIMS[0];
       const role = NODE_ROLE_BY_KEY[n.role || ''];
       const type = NODE_TYPE_BY_KEY[n.type || 'pensamiento'];
-      return `<div class="insight-card">
-        <strong style="color:${dim.color};">${escapeHTML(n.label).replace(/\n/g, ' ')}</strong>
-        <div>${escapeHTML(type ? type.label : 'Nodo')} · ${escapeHTML(role ? role.label : 'Sin rol')} · puntuación ${scorePerturbationNode(n)}</div>
-        <div style="margin-top:4px;">Impacto ${n.impact || 3} · Accesibilidad ${n.accessibility || 3} · Confianza ${n.confidence || 3} · Riesgo ${n.risk || 2}</div>
+      const s = scorePerturbationNode(n);
+      const scoreColor = s >= 17 ? '#4A5C52' : s >= 12 ? '#7A8C6E' : '#9aada6';
+      const scoreLabel = s >= 17 ? 'Alta' : s >= 12 ? 'Media' : 'Baja';
+      return `<div class="insight-card" style="cursor:pointer;" onclick="selectNode(${n.id}); switchTab('dafne');">
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+          <strong style="color:${dim.color}; flex:1;">${escapeHTML(n.label).replace(/\n/g, ' ')}</strong>
+          <span style="background:${scoreColor}; color:#fff; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px;" title="Score de perturbación: ${s}/23. Fórmula: impacto×2 + accesibilidad + confianza + bonus_central + bonus_bucle − riesgo">${s}/23 · ${scoreLabel}</span>
+        </div>
+        <div style="font-size:10px; color:#666;">${escapeHTML(type ? type.label : 'Nodo')} · ${escapeHTML(role && n.role ? role.label : 'Sin rol asignado')}</div>
+        <div style="font-size:10px; color:#888; margin-top:3px;">Impacto ${n.impact || 3} · Accesibilidad ${n.accessibility || 3} · Confianza ${n.confidence || 3} · Riesgo ${n.risk || 2}</div>
       </div>`;
     }).join('') : '<div class="empty-state">Crea nodos para estimar puntos de perturbación.</div>';
   }
@@ -3948,9 +3983,12 @@ function nodePlain(n) {
 function describeNodeLine(n) {
   const dim = DIM_BY_KEY[n.dim] ? DIM_BY_KEY[n.dim].label : n.dim;
   const type = NODE_TYPE_BY_KEY[n.type || ''] ? NODE_TYPE_BY_KEY[n.type].label : 'Nodo';
-  const role = NODE_ROLE_BY_KEY[n.role || ''] && n.role ? `; rol: ${NODE_ROLE_BY_KEY[n.role].label}` : '';
-  const fn = n.fn ? `; función: ${n.fn.replace(/\n/g, ' ')}` : '';
-  return `- ${nodePlain(n)} (${dim}; ${type}${role}${fn})`;
+  const role = NODE_ROLE_BY_KEY[n.role || ''] && n.role ? ` · ${NODE_ROLE_BY_KEY[n.role].label}` : '';
+  const desc = n.desc ? `
+  → ${n.desc.replace(/\n/g, ' ').slice(0, 180)}${n.desc.length > 180 ? '…' : ''}` : '';
+  const fn = n.fn ? `
+  → Función: ${n.fn.replace(/\n/g, ' ').slice(0, 120)}${n.fn.length > 120 ? '…' : ''}` : '';
+  return `• ${nodePlain(n)} (${dim} · ${type}${role})${desc}${fn}`;
 }
 
 function getOutgoingEdges(id) {
@@ -4001,7 +4039,13 @@ function draftFormulationFromNetwork() {
   }
   if (!state.formulation.maintenance) {
     if (mainOrDetectedCycles.length) {
-      state.formulation.maintenance = `Bucles principales o candidatos detectados en la red:\n${mainOrDetectedCycles.map((c, i) => `- Bucle ${i + 1}: ${getCycleText(c)}`).join('\n')}\n\nHipótesis editable: estos ciclos describen procesos de retroalimentación que podrían mantener el sufrimiento en el presente. Conviene contrastarlos con mediciones repetidas, observación clínica y el reporte del paciente.`;
+      const mainCycleNodes = mainOrDetectedCycles[0] ?
+        mainOrDetectedCycles[0].map(id => state.nodes.find(n => n.id === id)).filter(Boolean) : [];
+      const cycleDescriptions = mainCycleNodes
+        .filter(n => n.desc || n.fn)
+        .map(n => `• ${nodePlain(n)}: ${(n.fn || n.desc || '').replace(/\n/g,' ').slice(0,120)}`)
+        .join('\n');
+      state.formulation.maintenance = `Ciclo(s) mantenedores detectados en la red:\n${mainOrDetectedCycles.map((c, i) => `- Ciclo ${i + 1}: ${getCycleText(c)}`).join('\n')}\n\n${cycleDescriptions ? `Descripción funcional de los nodos del ciclo principal:\n${cycleDescriptions}\n\n` : ''}Hipótesis editable: este ciclo describe cómo se retroalimentan mutuamente los procesos que mantienen el sufrimiento. Identifica el nodo más accesible e impactante para perturbar primero (ver puntos de perturbación candidatos).`;
     } else {
       const focus = central;
       state.formulation.maintenance = focus.length
@@ -4015,7 +4059,11 @@ function draftFormulationFromNetwork() {
   if (!state.formulation.goals) {
     const targets = central.length ? central : [...state.nodes].sort((a, b) => scorePerturbationNode(b) - scorePerturbationNode(a)).slice(0, Math.min(5, state.nodes.length));
     state.formulation.goals = targets.length
-      ? `Objetivos clínicos derivados de nodos principales:\n${targets.map(n => `- Modificar "${nodePlain(n)}" (impacto ${n.impact || 3}/5, accesibilidad ${n.accessibility || 3}/5, riesgo ${n.risk || 2}/5).`).join('\n')}\n\nObjetivo general editable: perturbar la red desadaptativa, debilitar ciclos de mantenimiento y fortalecer procesos alternativos alineados con valores, seguridad y funcionamiento.`
+      ? `Objetivos clínicos derivados de nodos centrales (paso 6 del PBT):\n${targets.map(n => {
+        const score = scorePerturbationNode(n);
+        const fn = n.fn ? ` → ${n.fn.replace(/\n/g,' ').slice(0,100)}` : '';
+        return `• "${nodePlain(n)}" — impacto ${n.impact||3}/5, accesibilidad ${n.accessibility||3}/5, riesgo ${n.risk||2}/5, score ${score}/23${fn}`;
+      }).join('\n')}\n\nObjetivo integrador editable: perturbar la red desadaptativa interviniendo sobre los nodos de mayor score que no impliquen riesgo elevado. Fortalecer simultáneamente los procesos adaptativos y protectores para construir una red alternativa auto-reforzante.`
       : `Priorizar cambios en ${central.length || stats.nodes} proceso(s) central(es), buscando alterar la red desadaptativa y fortalecer alternativas funcionales.`;
   }
   syncFormulationForm();
@@ -4125,10 +4173,14 @@ function renderPlan() {
   if (planNodes.length === 0) {
     paper.innerHTML = renderPlanHeader() + `
       <div class="empty-warning">
-        <strong>No hay nodos para incluir en el plan.</strong><br><br>
-        El plan se construye con: <em>los nodos del bucle principal marcado</em> + <em>los nodos marcados como centrales</em>.
-        <br><br>
-        Marca al menos un nodo como central en DAFNE, o marca un bucle principal en la pestaña Bucles.
+        <strong>El plan aún no tiene contenido.</strong> Sigue estos pasos:<br><br>
+        <ol style="padding-left:18px; line-height:2;">
+          <li>Ve a <strong>Diagrama ARF</strong> → crea los nodos clínicos del caso → marca los más importantes como <em>Nodo central de intervención</em> ★</li>
+          <li>Ve a <strong>Ciclos</strong> → toca <em>Recalcular</em> → marca el bucle mantenedor principal</li>
+          <li>Vuelve aquí y toca <strong>Regenerar plan</strong></li>
+        </ol>
+        <br>
+        <em style="font-size:10px; color:#888;">Alternativa rápida: ve a <strong>Notas de sesión → Analizar con IA</strong> para generar todo el caso automáticamente desde una transcripción.</em>
       </div>`;
     return;
   }
@@ -4318,7 +4370,13 @@ function renderPlanNode(n, hasMain) {
       if (!body) body = '<span class="vsrc-empty">Sin contenido.</span>';
     } else {
       if (eemmNote) body = escapeHTML(eemmNote).replace(/\n/g,'<br>');
-      else body = '<span class="vsrc-empty">Sin notas en la celda EEMM correspondiente.</span>';
+      const vsrcGuide = {
+        variacion: '¿Qué rango de respuestas tiene disponibles en ' + dim.label.toLowerCase() + '? ¿Hay rigidez o diversidad?',
+        seleccion: '¿Bajo qué criterio se eligen las respuestas de ' + dim.label.toLowerCase() + '? ¿Qué función tienen?',
+        retencion: '¿Qué patrones de ' + dim.label.toLowerCase() + ' persisten en el tiempo? ¿Qué se refuerza?',
+        contexto: '¿Qué condiciones (situación, historia, biología) regulan los procesos de ' + dim.label.toLowerCase() + ' en este caso?',
+      };
+      body = '<span class="vsrc-empty" style="font-style:italic; color:#aaa; font-size:10px; line-height:1.5;">' + escapeHTML(vsrcGuide[l.key] || 'Sin notas en la tabla EEMM para esta celda.') + '</span>';
     }
     return `<div class="vsrc-cell ${isNodeProcess ? 'has-node' : ''}">
       <div class="vsrc-label">
@@ -4560,7 +4618,7 @@ async function openCaseFile() {
       const [fileHandle] = await window.showOpenFilePicker({
         types: [{
           description: 'Caso DAFNE',
-          accept: { 'application/json': ['.dafne', '.json'] }
+          accept: { 'application/json': ['.json', '.dafne'] }
         }],
       });
       const file = await fileHandle.getFile();
@@ -4574,7 +4632,7 @@ async function openCaseFile() {
     // Fallback: usar input file oculto
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.dafne,.json,application/json';
+    input.accept = '.json,.dafne,application/json,text/plain,*/*';
     input.onchange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -4608,7 +4666,7 @@ async function saveCase() {
 
 async function saveCaseAs() {
   const suggestedName = (state.patient.name || 'caso')
-    .replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase() + '.dafne';
+    .replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase() + '.json';
 
   if (FS_SUPPORTED) {
     try {
@@ -4616,7 +4674,7 @@ async function saveCaseAs() {
         suggestedName,
         types: [{
           description: 'Caso DAFNE',
-          accept: { 'application/json': ['.dafne'] }
+          accept: { 'application/json': ['.json', '.dafne'] }
         }],
       });
       const writable = await fileHandle.createWritable();
@@ -4653,8 +4711,11 @@ function newCase() {
   state.detectedCycles = []; state.selectedNodeId = null; state.nextNodeId = 1;
   state.caseProtocols = {};
   state.fileHandle = null; state.fileName = null; state.dirty = false;
-  state.selectedKernelName = null;
-  initKernelLibrary();  // global o default
+  state.selectedKernelName = null; state.lsCaseId = null;
+  state.sessionNotes = ['']; state.currentSessionIdx = 0;
+  state.pendingAIResult = null;
+  lsSetActiveCaseId(null);
+  initKernelLibrary();
   initEEMM();
   syncPatientForm();
   syncFormulationForm();
@@ -4729,7 +4790,20 @@ setTimeout(() => {
   renderKernelsLibrary();
   updatePatientQuick();
   applyMobileUI();
-  // Show banner if File System Access API not supported
+  updateLocalStorageBadge();
+  updateWelcomeLsCount();
+  // Restore last case from localStorage — if found, skip welcome screen
+  const restored = tryRestoreLastCase();
+  if (restored) {
+    const ws = document.getElementById('welcome-screen');
+    if (ws) ws.style.display = 'none';
+    syncPatientForm();
+    syncFormulationForm();
+    renderAll();
+    updatePatientQuick();
+    toast('Caso restaurado: ' + (state.patient.name || 'sin nombre'));
+  }
+  // Show FS banner if needed
   if (!FS_SUPPORTED) {
     const banner = document.getElementById('fs-support-banner');
     if (banner) banner.style.display = 'block';
@@ -5090,8 +5164,213 @@ REGLAS DE CALIDAD:
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MOBILE NAVIGATION & TOUCH
+// PERSISTENCIA EN LOCALSTORAGE — para iPad y dispositivos sin File System API
 // ═══════════════════════════════════════════════════════════════════════════
+
+const LS_ACTIVE_KEY   = 'dafne_active_case_v1';      // caso activo (autoguardado)
+const LS_CASE_LIST    = 'dafne_case_list_v1';         // índice { id, name, date, size }
+const LS_CASE_PREFIX  = 'dafne_case_';                // prefijo para cada caso guardado
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+function lsGetCaseList() {
+  try { return JSON.parse(localStorage.getItem(LS_CASE_LIST) || '[]'); }
+  catch(e) { return []; }
+}
+
+function lsSaveCaseList(list) {
+  try { localStorage.setItem(LS_CASE_LIST, JSON.stringify(list)); }
+  catch(e) {}
+}
+
+function lsSaveCase(id, json, name) {
+  try {
+    localStorage.setItem(LS_CASE_PREFIX + id, json);
+    const list = lsGetCaseList();
+    const idx = list.findIndex(c => c.id === id);
+    const entry = { id, name: name || 'Sin nombre', date: new Date().toISOString(), size: json.length };
+    if (idx >= 0) list[idx] = entry; else list.unshift(entry);
+    lsSaveCaseList(list);
+    return true;
+  } catch(e) {
+    if (e.name === 'QuotaExceededError') toast('Almacenamiento lleno. Exporta y borra casos antiguos.');
+    return false;
+  }
+}
+
+function lsLoadCase(id) {
+  try { return localStorage.getItem(LS_CASE_PREFIX + id); }
+  catch(e) { return null; }
+}
+
+function lsDeleteCase(id) {
+  try {
+    localStorage.removeItem(LS_CASE_PREFIX + id);
+    const list = lsGetCaseList().filter(c => c.id !== id);
+    lsSaveCaseList(list);
+  } catch(e) {}
+}
+
+function lsGetActiveCaseId() {
+  try { return localStorage.getItem(LS_ACTIVE_KEY); }
+  catch(e) { return null; }
+}
+
+function lsSetActiveCaseId(id) {
+  try { localStorage.setItem(LS_ACTIVE_KEY, id || ''); }
+  catch(e) {}
+}
+
+function lsEstimateUsage() {
+  // Rough estimate of localStorage usage in KB
+  let total = 0;
+  try {
+    for (let k in localStorage) {
+      if (Object.prototype.hasOwnProperty.call(localStorage, k)) {
+        total += (localStorage[k].length + k.length) * 2; // UTF-16
+      }
+    }
+  } catch(e) {}
+  return Math.round(total / 1024);
+}
+
+// ── Autoguardado con debounce ─────────────────────────────────────────────
+
+let _autoSaveTimer = null;
+
+function scheduleAutoSave() {
+  if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(() => {
+    autoSaveToLocalStorage();
+  }, 2000); // 2s after last change
+}
+
+function autoSaveToLocalStorage() {
+  if (!state.nodes.length && !state.patient.name) return; // nothing to save
+  const caseId = state.lsCaseId || ('case_' + Date.now());
+  if (!state.lsCaseId) state.lsCaseId = caseId;
+  const name = state.patient.name || 'Sin nombre';
+  const json = buildCaseJSON();
+  if (lsSaveCase(caseId, json, name)) {
+    lsSetActiveCaseId(caseId);
+    updateLocalStorageBadge();
+  }
+}
+
+function updateLocalStorageBadge() {
+  const badge = document.getElementById('ls-badge');
+  if (!badge) return;
+  const list = lsGetCaseList();
+  const usage = lsEstimateUsage();
+  badge.textContent = `${list.length} caso(s) · ~${usage} KB usados`;
+}
+
+// Hook into markDirty to trigger autoSave
+const _origMarkDirty = markDirty;
+markDirty = function() {
+  _origMarkDirty();
+  scheduleAutoSave();
+};
+
+// ── Gestión de casos guardados ────────────────────────────────────────────
+
+function openSavedCasesPanel() {
+  const list = lsGetCaseList();
+  const usage = lsEstimateUsage();
+  const modal = document.getElementById('modal');
+  const content = document.getElementById('modal-content');
+
+  if (!list.length) {
+    content.innerHTML = `
+      <h3>Casos guardados en este dispositivo</h3>
+      <p style="font-size:11px; color:#666; margin-bottom:14px;">
+        No hay casos guardados aún. Cuando trabajes en un caso, se guardará automáticamente aquí.
+      </p>
+      <div style="display:flex; justify-content:flex-end;">
+        <button class="btn small ghost" onclick="closeModal()">Cerrar</button>
+      </div>`;
+  } else {
+    const rows = list.map(c => {
+      const date = new Date(c.date).toLocaleDateString('es-EC', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const kb = Math.round(c.size / 1024 * 10) / 10;
+      const isActive = c.id === state.lsCaseId;
+      return `<div style="display:flex; align-items:center; gap:8px; padding:8px 10px; margin-bottom:6px; background:${isActive ? '#EBF2EC' : '#faf8f4'}; border:1px solid ${isActive ? '#7A8C6E' : '#e0d8c8'}; border-radius:6px;">
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:12px; font-weight:600; color:#4A5C52; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHTML(c.name)}${isActive ? ' <span style="font-size:9px; color:#7A8C6E;">(activo)</span>' : ''}</div>
+          <div style="font-size:10px; color:#888;">${date} · ${kb} KB</div>
+        </div>
+        <button class="btn small" onclick="loadCaseFromLS('${c.id}')">Abrir</button>
+        <button class="btn small danger" onclick="deleteCaseFromLS('${c.id}')" title="Eliminar">✕</button>
+      </div>`;
+    }).join('');
+
+    content.innerHTML = `
+      <h3>Casos guardados en este dispositivo</h3>
+      <p style="font-size:10px; color:#888; margin-bottom:12px;">
+        Almacenamiento usado: ~${usage} KB de ~5,000 KB disponibles.
+        Los casos se guardan automáticamente al editar.
+        Para liberar espacio, elimina casos que ya exportaste como .json.
+      </p>
+      <div style="max-height:340px; overflow-y:auto; margin-bottom:12px;">${rows}</div>
+      <div style="display:flex; gap:8px; justify-content:space-between; align-items:center;">
+        <button class="btn small secondary" onclick="newCaseLS()">＋ Nuevo caso</button>
+        <button class="btn small ghost" onclick="closeModal()">Cerrar</button>
+      </div>`;
+  }
+  modal.classList.add('active');
+}
+
+function loadCaseFromLS(id) {
+  if (state.dirty && !confirm('Hay cambios sin guardar. ¿Abrir otro caso de todos modos?')) return;
+  const json = lsLoadCase(id);
+  if (!json) { toast('No se encontró el caso'); return; }
+  try {
+    loadCaseFromJSON(json, null, null);
+    state.lsCaseId = id;
+    lsSetActiveCaseId(id);
+    closeModal();
+    const name = state.patient.name || 'Sin nombre';
+    toast('Caso abierto: ' + name);
+    switchTab('patient');
+  } catch(e) {
+    alert('Error al abrir: ' + e.message);
+  }
+}
+
+function deleteCaseFromLS(id) {
+  const list = lsGetCaseList();
+  const c = list.find(x => x.id === id);
+  if (!confirm(`¿Eliminar "${c ? c.name : id}" del almacenamiento local?\n\nEsto no se puede deshacer. Si tienes una copia exportada como .dafne estás a salvo.`)) return;
+  lsDeleteCase(id);
+  openSavedCasesPanel(); // refresh
+  toast('Caso eliminado del almacenamiento local');
+}
+
+function newCaseLS() {
+  closeModal();
+  newCase();
+}
+
+// ── Restaurar caso activo al cargar ──────────────────────────────────────
+
+function tryRestoreLastCase() {
+  const activeId = lsGetActiveCaseId();
+  if (!activeId) return false;
+  const json = lsLoadCase(activeId);
+  if (!json) return false;
+  try {
+    loadCaseFromJSON(json, null, null);
+    state.lsCaseId = activeId;
+    const name = state.patient.name || 'caso';
+    console.log('DAFNE: restored case from localStorage:', name);
+    return true;
+  } catch(e) {
+    console.warn('DAFNE: could not restore last case', e);
+    return false;
+  }
+}
+
+
 
 function isMobile() {
   return window.innerWidth <= 768;
@@ -5099,17 +5378,23 @@ function isMobile() {
 
 // Show/hide mobile-specific UI elements
 function applyMobileUI() {
-  const mobile = isMobile();
+  // Detect touch device (covers iPad landscape which may be > 768px)
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const mobile = isMobile() || isTouch;
+
+  // IO tab: show mobile button on touch devices, hide desktop FS API button
   const desktopOpen = document.getElementById('btn-open-desktop');
   const mobileOpen = document.getElementById('label-open-mobile');
   const mobileSaveHint = document.getElementById('mobile-save-hint');
+  if (desktopOpen) desktopOpen.style.display = (isTouch && !FS_SUPPORTED) ? 'none' : '';
+  if (mobileOpen) mobileOpen.style.display = (isTouch && !FS_SUPPORTED) ? '' : 'none';
+  if (mobileSaveHint) mobileSaveHint.style.display = isTouch ? 'block' : 'none';
+
+  // Welcome screen
   const welcomeDesktop = document.getElementById('welcome-open-desktop');
   const welcomeMobile = document.getElementById('welcome-open-mobile');
-  if (desktopOpen) desktopOpen.style.display = mobile ? 'none' : '';
-  if (mobileOpen) mobileOpen.style.display = mobile ? 'inline-flex' : 'none';
-  if (mobileSaveHint) mobileSaveHint.style.display = mobile ? 'block' : 'none';
-  if (welcomeDesktop) welcomeDesktop.style.display = mobile ? 'none' : '';
-  if (welcomeMobile) welcomeMobile.style.display = mobile ? 'flex' : 'none';
+  if (welcomeDesktop) welcomeDesktop.style.display = (isTouch && !FS_SUPPORTED) ? 'none' : '';
+  if (welcomeMobile) welcomeMobile.style.display = (isTouch && !FS_SUPPORTED) ? '' : 'none';
 }
 
 // ── Welcome screen ──────────────────────────────────────────────────────
@@ -5125,21 +5410,25 @@ function dismissWelcome(callback) {
 }
 
 function welcomeNewCase() {
-  dismissWelcome(() => {
-    switchTab('notes');
-  });
+  dismissWelcome(() => switchTab('notes'));
 }
 
 async function welcomeOpenCase() {
-  // Desktop: use File System Access API or fallback
-  dismissWelcome(async () => {
-    await openCaseFile();
-  });
+  dismissWelcome(async () => { await openCaseFile(); });
+}
+
+function welcomeOpenSaved() {
+  dismissWelcome(() => openSavedCasesPanel());
 }
 
 function welcomeImportFile(event) {
   const file = event.target.files[0];
   if (!file) return;
+  const name = file.name.toLowerCase();
+  if (!name.endsWith('.dafne') && !name.endsWith('.json')) {
+    alert('Archivo no reconocido: "' + file.name + '"\n\nSelecciona un archivo .dafne o .json exportado desde DAFNE.');
+    event.target.value = ''; return;
+  }
   const reader = new FileReader();
   reader.onload = e => {
     try {
@@ -5148,18 +5437,29 @@ function welcomeImportFile(event) {
         toast('Caso abierto: ' + file.name);
         switchTab('patient');
       });
-    } catch (err) {
-      alert('Error al abrir: ' + err.message);
-    }
+    } catch (err) { alert('Error al abrir: ' + err.message); }
   };
   reader.readAsText(file);
   event.target.value = '';
+}
+
+function updateWelcomeLsCount() {
+  const count = lsGetCaseList().length;
+  const badge = document.getElementById('welcome-ls-count');
+  if (badge) badge.textContent = count > 0 ? count : '';
+  const btn = document.getElementById('welcome-ls-cases');
+  if (btn) btn.style.display = ''; // always show
 }
 
 // Mobile file input handler for opening cases
 function importCaseFromInput(event) {
   const file = event.target.files[0];
   if (!file) return;
+  const name = file.name.toLowerCase();
+  if (!name.endsWith('.dafne') && !name.endsWith('.json')) {
+    alert('Archivo no reconocido: "' + file.name + '"\n\nSelecciona un archivo .dafne o .json exportado desde DAFNE.');
+    event.target.value = ''; return;
+  }
   const reader = new FileReader();
   reader.onload = e => {
     try {
@@ -5284,7 +5584,7 @@ function buildUserMessage(notes) {
     <span class="nav-icon">📝</span>Notas
   </button>
   <button class="mobile-nav-btn" data-tab="dafne" onclick="switchTab('dafne'); setMobileNav('dafne')">
-    <span class="nav-icon">🔲</span>DAFNE
+    <span class="nav-icon">🔲</span>ARF
   </button>
   <button class="mobile-nav-btn" data-tab="formulation" onclick="switchTab('formulation'); setMobileNav('formulation')">
     <span class="nav-icon">🧩</span>Formulación
