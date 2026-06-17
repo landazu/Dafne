@@ -7343,11 +7343,11 @@ async function analyzeWithAI() {
       .map(b => b.text)
       .join('');
 
-    const jsonMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)```/) ||
-                      rawText.match(/(\{[\s\S]*\})/);
-    if (!jsonMatch) throw new Error('No se encontró JSON válido en la respuesta de Claude.');
+    // Extraer el primer objeto JSON balanceado (ignorar code fences si los hay)
+    const rawJSON = extractFirstBalancedJSON(rawText);
+    if (!rawJSON) throw new Error('No se encontró JSON válido en la respuesta de Claude.');
 
-    const parsed = JSON.parse(jsonMatch[1].trim());
+    const parsed = JSON.parse(sanitizeJSONString(rawJSON));
 
     if (!parsed.patient || !parsed.nodes) {
       throw new Error('El JSON generado no tiene el formato DAFNE esperado (falta patient/nodes).');
@@ -7474,6 +7474,54 @@ function applyAIResult() {
   }
 }
 
+// Sanitiza un string JSON: escapa saltos de línea, tabs y comillas sin escapar
+// que el modelo puede generar dentro de valores string, rompiendo JSON.parse
+function sanitizeJSONString(str) {
+  let result = '';
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    const code = str.charCodeAt(i);
+    if (escaped) {
+      result += ch;
+      escaped = false;
+      continue;
+    }
+    if (ch === '\\' && inString) { result += ch; escaped = true; continue; }
+    if (ch === '"') { inString = !inString; result += ch; continue; }
+    if (inString) {
+      // Escape ALL control characters and JSON-invalid Unicode line terminators
+      if (ch === '\n')         { result += '\\n'; continue; }
+      if (ch === '\r')         { continue; }
+      if (ch === '\t')         { result += '\\t'; continue; }
+      if (code === 0x2028)     { result += '\\u2028'; continue; } // LINE SEPARATOR
+      if (code === 0x2029)     { result += '\\u2029'; continue; } // PARAGRAPH SEPARATOR
+      if (code < 0x20)         { result += '\\u' + code.toString(16).padStart(4, '0'); continue; }
+    }
+    result += ch;
+  }
+  return result;
+}
+
+// Extrae el primer objeto JSON completo y balanceado del texto
+function extractFirstBalancedJSON(text) {
+  const start = text.indexOf('{');
+  if (start === -1) return null;
+  let depth = 0, inString = false, escaped = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\' && inString) { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (!inString) {
+      if (ch === '{') depth++;
+      else if (ch === '}') { depth--; if (depth === 0) return text.slice(start, i + 1); }
+    }
+  }
+  return null;
+}
+
 // ── Prompt construction ────────────────────────────────────────────────────
 
 function buildDAFNESystemPrompt() {
@@ -7481,11 +7529,7 @@ function buildDAFNESystemPrompt() {
 
 Tu tarea: analizar transcripciones o notas clínicas y generar un JSON DAFNE 1.0, cargado directamente en una aplicación clínica.
 
-REGLA CRÍTICA: Responde ÚNICAMENTE con un bloque de código JSON. Nada más.
-
-\`\`\`json
-{ ... }
-\`\`\`
+REGLA CRÍTICA: Responde ÚNICAMENTE con el objeto JSON. Sin texto adicional, sin bloques de código, sin explicaciones, sin marcadores. La respuesta empieza con { y termina con }.
 
 ESQUEMA OBLIGATORIO (claves exactas en inglés):
 { "version":"0.9", "app":"DAFNE", "exported_at":"<ISO>", "patient":{...}, "nodes":[...], "edges":[...], "mainCycle":[...], "eemm":{...}, "caseProtocols":{}, "formulation":{...}, "session_summary":"...", "supervision":{...} }
