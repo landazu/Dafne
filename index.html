@@ -7344,8 +7344,13 @@ async function analyzeWithAI() {
       .join('');
 
     // Extraer el primer objeto JSON balanceado (ignorar code fences si los hay)
+    console.log('[DAFNE] rawText length:', rawText.length, '| first 200 chars:', rawText.slice(0, 200));
     const rawJSON = extractFirstBalancedJSON(rawText);
-    if (!rawJSON) throw new Error('No se encontró JSON válido en la respuesta de Claude.');
+    if (!rawJSON) {
+      console.error('[DAFNE] rawText completo:', rawText);
+      throw new Error('No se encontró JSON válido en la respuesta de Claude.');
+    }
+    console.log('[DAFNE] rawJSON length:', rawJSON.length);
 
     const parsed = JSON.parse(sanitizeJSONString(rawJSON));
 
